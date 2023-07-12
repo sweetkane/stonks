@@ -1,0 +1,14 @@
+sector,index
+Basic Materials,0
+Consumer Discretionary,1
+Consumer Staples,2
+Energy,3
+Finance,4
+Health Care,5
+Industrials,6
+Miscellaneous,7
+Real Estate,8
+Technology,9
+Telecommunications,10
+Utilities,11
+None,12

@@ -44,6 +44,8 @@ class ForecasterDataset(Dataset):
         progress_array = np.zeros((self.len))
         self.h5py.set_dataset("progress", progress_array)
 
+# TODO create custom dataloader that does get_inputs as part of collate_fn
+
 def create_loader(batch_size, start_index=0, end_index=-1, reset_progress=False):
     """end_index should be negative"""
     dataset = ForecasterDataset(start_index, end_index)

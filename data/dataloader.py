@@ -1,3 +1,4 @@
+from torch.utils.data.dataloader import _BaseDataLoaderIter
 from common.common_imports import *
 from data.history import HISTORY_DATA
 from data.info import INFO_DATA
@@ -17,8 +18,6 @@ class ForecasterDataset(Dataset):
         return self.len
 
     def __getitem__(self, index):
-        if self.check_progress(index): return None, None
-        self.mark_progress(index)
 
         # get history array according to start/end limits
         if self.end_index:
@@ -29,55 +28,168 @@ class ForecasterDataset(Dataset):
         info = self.info_data.info_array_from_index(index)
         info_padded = np.pad(info, (0, history.shape[1]-info.shape[0]), mode='constant', constant_values=0)
 
-        # return training_data, data_len
+        # return training_data
         return torch.tensor(np.vstack((info_padded, history)), dtype=torch.float)
 
+class BatchProcessor:
+    def __init__(
+        self,
+        max_src_window: int,
+        should_validate_batch: bool = False,
+    ):
+        self.max_src_window = max_src_window
+        self.should_validate_batch = should_validate_batch
 
-    def check_progress(self, index):
-        """return true if we have already trained on this index"""
-        return self.h5py.get_dataset_at_i("progress", index) == 1
+    def get_src_len(self, lengths, max_src_window, days_pred):
+        batch_size = lengths.shape[0]
+        return torch.min(
+            torch.full((batch_size,), max_src_window),
+            lengths - days_pred
+        )
 
-    def mark_progress(self, index):
-        self.h5py.set_dataset_at_i("progress", index, 1.)
+    def get_inputs(self, batch: torch.Tensor, lengths, days_pred: int):
+        """returns src, src_kay_padding_mask, tgt, exp"""
+        batch_size = batch.shape[0]
+        num_feats = batch.shape[2]
+        cur_max_src_window = min(self.max_src_window, batch.shape[1])
+        src = batch[:, :cur_max_src_window, :]
 
-    def reset_progress(self):
-        progress_array = np.zeros((self.len))
-        self.h5py.set_dataset("progress", progress_array)
+        # src[:] <= src_window_size && src[:] <= lengths[:] - days_pred - 1 && src[i] >= min_src_window
+        src_len = self.get_src_len(lengths, cur_max_src_window, days_pred)
 
-# TODO create custom dataloader that does get_inputs as part of collate_fn
+        # create src_padding_mask, tgt, exp using src_len
+        src_padding_mask = torch.full((batch_size, cur_max_src_window), True)
+        tgt = torch.empty((batch_size, days_pred, num_feats))
+        exp = torch.empty((batch_size, days_pred, num_feats))
 
-def create_loader(batch_size, start_index=0, end_index=-1, reset_progress=False):
-    """end_index should be negative"""
-    dataset = ForecasterDataset(start_index, end_index)
-    if reset_progress: dataset.reset_progress()
-    return DataLoader(dataset, batch_size, shuffle=True, collate_fn=collate_fn)
+        # The following is equivalent to this
+        # for i in range(batch_size):
+        #     src_padding_mask[i, :src_len[i]] = False
+        #     tgt[i] = batch[i, src_len[i]-1:src_len[i]-1+days_pred]
+        #     exp[i] = batch[i, src_len[i]:src_len[i]+days_pred]
 
-def create_splits(batch_size, test_size, reset_progress=False):
-    train_loader = create_loader(
+        # Expand dimensions for correct broadcasting
+        src_len_expanded = src_len.view(-1, 1)
+        # Create a range tensor: 1 x seq_len
+        range_tensor = torch.arange(src_padding_mask.size(1)).unsqueeze(0)
+        # Update src_padding_mask
+        src_padding_mask = range_tensor >= src_len_expanded
+        # Create range tensors for correct slicing
+        range_tensor_2 = torch.arange(batch.shape[1]).unsqueeze(0).expand(batch_size, -1)
+        # Adjust indices for correct slicing
+        start_indices = src_len_expanded - 1
+        end_indices = start_indices + days_pred
+        # Create masks for tgt and exp
+        tgt_mask = (range_tensor_2 >= start_indices) & (range_tensor_2 < end_indices)
+        exp_mask = (range_tensor_2 >= src_len_expanded) & (range_tensor_2 < (src_len_expanded + days_pred))
+        # Mask tgt and exp
+        tgt = batch[tgt_mask].reshape(tgt.shape)
+        exp = batch[exp_mask].reshape(exp.shape)
+
+        if self.should_validate_batch:
+            self.validate_batch(batch, lengths, src, src_padding_mask, tgt, exp, days_pred)
+
+        return src, src_padding_mask, tgt, exp
+
+    def validate_batch(
+            self, batch, lengths, src, src_padding_mask, tgt, exp, days_pred
+    ):
+        src_len = self.get_src_len(lengths, self.max_src_window, days_pred)
+
+        # ex:
+        # batch = 0,1,2,3,4,5,6,7,8,9
+        # batch_size = 10
+        # src_len = 5
+        # src = [0,1,2,3,4],5,6,7,8,9
+        # tgt = 0,1,2,3,[4,5,6,7,8],9
+        # exp = 0,1,2,3,4,[5,6,7,8,9]
+        for i in range(len(batch)):
+            assert src_len[i] + days_pred <= len(batch[i])
+            assert src_len[i] <= self.max_src_window
+            for j in range(len(batch[i])):
+                # src (valid src)
+                if j < src_len[i]:
+                    assert sum(src[i, j]) > 0
+                    assert torch.equal(src[i, j], batch[i, j])
+                    assert src_padding_mask[i, j] == False
+                elif j < src_len[i] + days_pred:
+                    # src (invalid src)
+                    if j < self.max_src_window:
+                        assert src_padding_mask[i, j] == True
+                    # tgt // tgt[:,0] == batch[:, src_len-1]
+                    assert torch.equal(tgt[i, j-src_len[i]], batch[i, j-1])
+                    # exp // exp[:,0] == batch[:, src_len]
+                    assert torch.equal(exp[i, j-src_len[i]], batch[i, j])
+
+    def standardize(self, batch: torch.Tensor, lengths: torch.Tensor):
+        batch_size = batch.shape[0]
+        prices = batch[:,:,:4]
+        vols = batch[:,:,4]
+        range_tensor = torch.arange(batch.shape[1]).unsqueeze(0).expand(batch_size, -1)
+        mask = (range_tensor < lengths.view(-1, 1))
+        prices = torch.masked_select(prices, mask)
+        vols = torch.masked_select(vols, mask)
+        mean_price = torch.mean(prices)
+        mean_vol = torch.mean(vols)
+        std_dev_price = torch.std(prices)
+        std_dev_vol = torch.std(vols)
+
+        batch[:,:,:4] = (batch[:,:,:4] - mean_price) / std_dev_price
+        batch[:,:,4] = (batch[:,:,4] - mean_vol) / std_dev_vol
+        return batch, (mean_price, mean_vol, std_dev_price, std_dev_vol)
+
+    def unstandardize(self, data: torch.Tensor, mean_price, mean_vol, std_dev_price, std_dev_vol):
+        data[:,:,:4] = (data[:,:,:4] - mean_price) / std_dev_price
+        data[:,:,4] = (data[:,:,4] - mean_vol) / std_dev_vol
+        return data
+
+# standardized_data = (data - mean(data)) / std_dev(data)
+
+# To reverse standardization, use the inverse transformation:
+
+# original_data = standardized_data * std_dev(data) + mean(data)
+
+def create_splits(
+        batch_size, test_size, num_workers):
+
+    train_loader = DataLoader(
+        dataset=ForecasterDataset(0, 0-test_size),
         batch_size=batch_size,
-        start_index=0,
-        end_index=0-test_size,
-        reset_progress=reset_progress)
-    test_loader = create_loader(
+        shuffle=True,
+        collate_fn=collate,
+        num_workers=num_workers
+    )
+
+    test_loader = DataLoader(
+        dataset=ForecasterDataset(0-test_size, None),
         batch_size=batch_size,
-        start_index=0-test_size,
-        end_index=None,
-        reset_progress=reset_progress)
+        shuffle=True,
+        collate_fn=collate,
+        num_workers=num_workers
+    )
+
     return train_loader, test_loader
 
-def collate_fn(data):
+
+def collate(data: list[torch.Tensor]):
     """recieves list of dataset.__getitem__() outputs\n
-       returns batch collated to max_len, tensor of lengths for each item in batch
+    returns batch collated to max_len, tensor of lengths for each item in batch
     """
-    batch_size = len(data)
-    feature_size = data[0].shape[1]
-    lengths = torch.empty((batch_size), dtype=int)
-    for i, array in enumerate(data):
-        lengths[i] = array.shape[0]
-    maxLen = torch.max(lengths).item()
-    collated = torch.zeros((batch_size, maxLen, feature_size))
-    for i, array in enumerate(data):
-        collated[i][:array.shape[0]] = array
+    collated = pad_sequence(data, batch_first=True)
+    lengths = torch.tensor([array.shape[0] for array in data])
     return collated, lengths
 
+def get_tgt_mask(size) -> torch.Tensor:
+    # Generates a squeare matrix where the each row allows one word more to be seen
+    mask = torch.tril(torch.ones(size, size) == 1) # Lower triangular matrix
+    mask = mask.float()
+    mask = mask.masked_fill(mask == 0, float('-inf')) # Convert zeros to -inf
+    mask = mask.masked_fill(mask == 1, float(0.0)) # Convert ones to 0
 
+        # EX for size=5:
+        # [[0., -inf, -inf, -inf, -inf],
+        #  [0.,   0., -inf, -inf, -inf],
+        #  [0.,   0.,   0., -inf, -inf],
+        #  [0.,   0.,   0.,   0., -inf],
+        #  [0.,   0.,   0.,   0.,   0.]]
+    return mask

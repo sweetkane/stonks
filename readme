@@ -26,3 +26,23 @@ https://towardsdatascience.com/how-to-run-inference-with-a-pytorch-time-series-t
 https://stackoverflow.com/questions/62170439/difference-between-src-mask-and-src-key-padding-mask
 
 torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
+
+# time series with transformer, lstm, linear
+https://github.com/cure-lab/ltsf-linear
+- transformer: https://github.com/cure-lab/LTSF-Linear/blob/main/models/Transformer.py
+- training: https://github.com/cure-lab/LTSF-Linear/blob/main/exp/exp_main.py
+
+# gpu profiler
+https://gist.github.com/MInner/8968b3b120c95d3f50b8a22a74bf66bc
+
+# TODO
+- implement normalization, (and reversion) functions
+- implement positional encoding layer (and remove time encoding columns from stored data)
+- play with lr and max_grad to increase training power
+- create custom dataloader to apply data transformations before model runtime
+- remove info-as-first-row and instead just add info to each row
+- test loader will need to contain everything from train loader.
+  - honestly train loader should just be total_num_days - max_days_pred
+
+# BUGS
+- use_progress will not work with >1 num_workers because of h5py thread safety

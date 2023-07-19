@@ -6,7 +6,7 @@ class H5PY_CONTROLLER:
         self.filename = filename
 
     def get_dataset(self, dataset_name):
-        file = h5py.File(self.filename, 'a')
+        file = h5py.File(self.filename, 'r')
         try:
             dataset = file[dataset_name]
             array = dataset[:]
@@ -26,7 +26,7 @@ class H5PY_CONTROLLER:
         file.close()
 
     def get_dataset_at_i(self, dataset_name, i):
-        file = h5py.File(self.filename, 'a')
+        file = h5py.File(self.filename, 'r')
         try:
             dataset = file[dataset_name]
             val = dataset[i]

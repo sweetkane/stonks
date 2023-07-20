@@ -36,13 +36,6 @@ https://github.com/cure-lab/ltsf-linear
 https://gist.github.com/MInner/8968b3b120c95d3f50b8a22a74bf66bc
 
 # TODO
-- implement normalization, (and reversion) functions
 - implement positional encoding layer (and remove time encoding columns from stored data)
-- play with lr and max_grad to increase training power
-- create custom dataloader to apply data transformations before model runtime
-- remove info-as-first-row and instead just add info to each row
-- test loader will need to contain everything from train loader.
-  - honestly train loader should just be total_num_days - max_days_pred
+- convert info to embeddings. create a function in info_data class and call in random.ipynb
 
-# BUGS
-- use_progress will not work with >1 num_workers because of h5py thread safety

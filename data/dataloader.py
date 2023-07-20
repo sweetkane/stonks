@@ -1,8 +1,5 @@
-from torch.utils.data.dataloader import _BaseDataLoaderIter
 from common.common_imports import *
 from data.history import HISTORY_DATA
-from data.info import INFO_DATA
-from data.h5py import H5PY_CONTROLLER
 
 class ForecasterDataset(Dataset):
     def __init__(self, start_index, end_index):
@@ -10,35 +7,17 @@ class ForecasterDataset(Dataset):
         self.start_index = start_index
         self.end_index = end_index
         self.history_data = HISTORY_DATA()
-        self.info_data = INFO_DATA()
-        self.h5py = H5PY_CONTROLLER()
-        self.len = len(self.history_data.tickers_idx)
 
     def __len__(self):
-        return self.len
+        return len(self.history_data.tickers_idx)
 
     def __getitem__(self, index):
-
-        # get history array according to start/end limits
-        if self.end_index:
-            history = self.history_data.history_array_from_index(index)[self.start_index:self.end_index]
-        else:
-            history = self.history_data.history_array_from_index(index)[self.start_index:]
-
-        info = self.info_data.info_array_from_index(index)
-        info_padded = np.pad(info, (0, history.shape[1]-info.shape[0]), mode='constant', constant_values=0)
-
-        # return training_data
-        return torch.tensor(np.vstack((info_padded, history)), dtype=torch.float)
+        history = self.history_data.history_array_from_index(index)[self.start_index:self.end_index+1]
+        return torch.tensor(history, dtype=torch.float32)
 
 class BatchProcessor:
-    def __init__(
-        self,
-        max_src_window: int,
-        should_validate_batch: bool = False,
-    ):
+    def __init__(self, max_src_window: int):
         self.max_src_window = max_src_window
-        self.should_validate_batch = should_validate_batch
 
     def get_src_len(self, lengths, max_src_window, days_pred):
         batch_size = lengths.shape[0]
@@ -77,17 +56,14 @@ class BatchProcessor:
         # Create range tensors for correct slicing
         range_tensor_2 = torch.arange(batch.shape[1]).unsqueeze(0).expand(batch_size, -1)
         # Adjust indices for correct slicing
-        start_indices = src_len_expanded - 1
-        end_indices = start_indices + days_pred
+        # start_indices = src_len_expanded - 1
+        # end_indices = start_indices + days_pred
         # Create masks for tgt and exp
-        tgt_mask = (range_tensor_2 >= start_indices) & (range_tensor_2 < end_indices)
+        tgt_mask = (range_tensor_2 >= src_len_expanded - 1) & (range_tensor_2 < src_len_expanded - 1 + days_pred)
         exp_mask = (range_tensor_2 >= src_len_expanded) & (range_tensor_2 < (src_len_expanded + days_pred))
         # Mask tgt and exp
         tgt = batch[tgt_mask].reshape(tgt.shape)
         exp = batch[exp_mask].reshape(exp.shape)
-
-        if self.should_validate_batch:
-            self.validate_batch(batch, lengths, src, src_padding_mask, tgt, exp, days_pred)
 
         return src, src_padding_mask, tgt, exp
 
@@ -109,7 +85,7 @@ class BatchProcessor:
             for j in range(len(batch[i])):
                 # src (valid src)
                 if j < src_len[i]:
-                    assert sum(src[i, j]) > 0
+                    assert torch.sum(src[i, j]) > 0
                     assert torch.equal(src[i, j], batch[i, j])
                     assert src_padding_mask[i, j] == False
                 elif j < src_len[i] + days_pred:
@@ -127,8 +103,8 @@ class BatchProcessor:
         vols = batch[:,:,4]
         range_tensor = torch.arange(batch.shape[1]).unsqueeze(0).expand(batch_size, -1)
         mask = (range_tensor < lengths.view(-1, 1))
-        prices = torch.masked_select(prices, mask)
-        vols = torch.masked_select(vols, mask)
+        prices = prices[mask]
+        vols = vols[mask]
         mean_price = torch.mean(prices)
         mean_vol = torch.mean(vols)
         std_dev_price = torch.std(prices)
@@ -136,12 +112,12 @@ class BatchProcessor:
 
         batch[:,:,:4] = (batch[:,:,:4] - mean_price) / std_dev_price
         batch[:,:,4] = (batch[:,:,4] - mean_vol) / std_dev_vol
-        return batch, (mean_price, mean_vol, std_dev_price, std_dev_vol)
+        return mean_price, mean_vol, std_dev_price, std_dev_vol
 
     def unstandardize(self, data: torch.Tensor, mean_price, mean_vol, std_dev_price, std_dev_vol):
-        data[:,:,:4] = (data[:,:,:4] - mean_price) / std_dev_price
-        data[:,:,4] = (data[:,:,4] - mean_vol) / std_dev_vol
-        return data
+        data[:,:,:4] = data[:,:,:4] * std_dev_price + mean_price
+        data[:,:,4] = data[:,:,4] * std_dev_vol + mean_vol
+
 
 # standardized_data = (data - mean(data)) / std_dev(data)
 
@@ -161,7 +137,7 @@ def create_splits(
     )
 
     test_loader = DataLoader(
-        dataset=ForecasterDataset(0-test_size, None),
+        dataset=ForecasterDataset(1-test_size, -1),
         batch_size=batch_size,
         shuffle=True,
         collate_fn=collate,

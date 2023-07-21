@@ -129,7 +129,7 @@ def create_splits(
         batch_size, test_size, num_workers):
 
     train_loader = DataLoader(
-        dataset=ForecasterDataset(0, 0-test_size),
+        dataset=ForecasterDataset(0, -test_size),
         batch_size=batch_size,
         shuffle=True,
         collate_fn=collate,
@@ -137,7 +137,7 @@ def create_splits(
     )
 
     test_loader = DataLoader(
-        dataset=ForecasterDataset(1-test_size, -1),
+        dataset=ForecasterDataset(0, -1),
         batch_size=batch_size,
         shuffle=True,
         collate_fn=collate,

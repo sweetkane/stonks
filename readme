@@ -25,8 +25,6 @@ https://towardsdatascience.com/how-to-run-inference-with-a-pytorch-time-series-t
 
 https://stackoverflow.com/questions/62170439/difference-between-src-mask-and-src-key-padding-mask
 
-torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
-
 # time series with transformer, lstm, linear
 https://github.com/cure-lab/ltsf-linear
 - transformer: https://github.com/cure-lab/LTSF-Linear/blob/main/models/Transformer.py
@@ -36,6 +34,5 @@ https://github.com/cure-lab/ltsf-linear
 https://gist.github.com/MInner/8968b3b120c95d3f50b8a22a74bf66bc
 
 # TODO
-- implement positional encoding layer (and remove time encoding columns from stored data)
 - convert info to embeddings. create a function in info_data class and call in random.ipynb
 

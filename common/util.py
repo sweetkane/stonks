@@ -22,7 +22,7 @@ def get_grad_max(model: torch.nn.Module, device):
 def plot_loss(y):
     x = np.arange(len(y))
     plt.scatter(x, y)
-    z = np.polyfit(x, np.log10(y), 1)
+    # z = np.polyfit(x, np.log10(y), 1)
     z = np.polyfit(x, y, 1)
     p = np.poly1d(z)
     plt.plot(x, 10**p(x), "r--")

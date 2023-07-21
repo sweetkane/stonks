@@ -35,4 +35,6 @@ https://gist.github.com/MInner/8968b3b120c95d3f50b8a22a74bf66bc
 
 # TODO
 - convert info to embeddings. create a function in info_data class and call in random.ipynb
-
+- remove max_src_window
+- move consts to a common.const file
+- add some helpful data analysis and vizualization methods

@@ -1,6 +1,5 @@
 from common.common_imports import *
 from data.history import HISTORY_DATA
-from batch_processor import BatchProcessor
 
 class ForecasterDataset(Dataset):
     def __init__(self, start_index, end_index):
@@ -13,7 +12,9 @@ class ForecasterDataset(Dataset):
         return len(self.history_data.tickers_idx)
 
     def __getitem__(self, index):
-        history = self.history_data.history_array_from_index(index)[self.start_index:self.end_index+1]
+        history = self.history_data.history_array_from_index(index)
+        end_index =  self.end_index if self.end_index else history.shape[0]
+        history = history[self.start_index:end_index]
         return torch.tensor(history, dtype=torch.float32)
 
 
@@ -36,7 +37,7 @@ def create_splits(
     )
 
     test_loader = DataLoader(
-        dataset=ForecasterDataset(0, -1),
+        dataset=ForecasterDataset(0, None),
         batch_size=batch_size,
         shuffle=True,
         collate_fn=collate,

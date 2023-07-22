@@ -1,16 +1,3 @@
-### Directory Structure
-- data
-    - h5py
-    - history
-    - time2vec
-    - fear_and_greed_index
-    - dataloader
-- forecaster
-    - forecaster
-    - training_controller
-- common
-    - utils
-
 # pretty solid explainer on transformers
 https://towardsdatascience.com/a-detailed-guide-to-pytorchs-nn-transformer-module-c80afbc9ffb1
 http://jalammar.github.io/illustrated-transformer/
@@ -23,8 +10,6 @@ https://towardsdatascience.com/how-to-run-inference-with-a-pytorch-time-series-t
 - pytorch models for timeseries: https://github.com/cure-lab/LTSF-Linear/tree/main
 - time series transformer 1D: https://github.com/KasperGroesLudvigsen/influenza_transformer/blob/main/transformer_timeseries.py
 
-https://stackoverflow.com/questions/62170439/difference-between-src-mask-and-src-key-padding-mask
-
 # time series with transformer, lstm, linear
 https://github.com/cure-lab/ltsf-linear
 - transformer: https://github.com/cure-lab/LTSF-Linear/blob/main/models/Transformer.py
@@ -35,6 +20,7 @@ https://gist.github.com/MInner/8968b3b120c95d3f50b8a22a74bf66bc
 
 # TODO
 - convert info to embeddings. create a function in info_data class and call in random.ipynb
-- remove max_src_window
 - move consts to a common.const file
 - add some helpful data analysis and vizualization methods
+- d_model should only be 5. I can add the rest in during inference
+- unstandardization is broken. maybe standardization is too who knows

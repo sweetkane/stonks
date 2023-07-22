@@ -19,22 +19,15 @@ class HISTORY_DATA:
     def ticker_stoi(self, ticker):
         return self.tickers_idx.index[self.tickers_idx['ticker'] == ticker].tolist()[0]
 
-    def array_to_dataframe(self, array):
+    @staticmethod
+    def array_to_dataframe(array):
         columns = [
             'Open',
             'High',
             'Low',
             'Close',
-            'Volume',
-            'year',
-            'month',
-            'day',
-            'month_sin',
-            'month_cos',
-            'day_sin',
-            'day_cos'
-            ]
-        if array.shape[1] == 15:
-            columns += ['country', 'sector', 'industry']
-
+            'Volume'
+        ]
+        if array.shape[1] == 8:
+            columns += ['year','month','day']
         return pd.DataFrame(array, columns=columns)

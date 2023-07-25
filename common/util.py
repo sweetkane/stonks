@@ -1,4 +1,4 @@
-from common.common_imports import *
+from common.imports import *
 
 
 
@@ -23,12 +23,13 @@ def plot_loss(y):
     x = np.arange(len(y))
     plt.scatter(x, y)
     # z = np.polyfit(x, np.log10(y), 1)
-    z = np.polyfit(x, y, 1)
-    p = np.poly1d(z)
-    plt.plot(x, 10**p(x), "r--")
-    plt.yscale("log")
+    # z = np.polyfit(x, y, 1)
+    # p = np.poly1d(z)
+    # plt.plot(x, 10**p(x), "r--")
+    # plt.plot(x, p(x), "r--")
+    # plt.yscale("log")
     plt.show
-    print(p)
+    # print(p)
 
 def print_tensors(msg):
     print(f"\nvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv\n{msg}\n")

@@ -1,4 +1,4 @@
-from common.common_imports import *
+from common.imports import *
 from data.history import HISTORY_DATA
 
 class INFO_DATA:

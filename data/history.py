@@ -1,4 +1,4 @@
-from common.common_imports import *
+from common.imports import *
 from data.h5py import H5PY_CONTROLLER
 
 class HISTORY_DATA:

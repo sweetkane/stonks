@@ -1,4 +1,5 @@
-from common.common_imports import *
+from common.imports import *
+from common.const import *
 from data.history import HISTORY_DATA
 
 class ForecasterDataset(Dataset):
@@ -14,7 +15,7 @@ class ForecasterDataset(Dataset):
     def __getitem__(self, index):
         history = self.history_data.history_array_from_index(index)
         end_index =  self.end_index if self.end_index else history.shape[0]
-        history = history[self.start_index:end_index]
+        history = history[self.start_index:end_index, :D_MODEL]
         return torch.tensor(history, dtype=torch.float32)
 
 

@@ -13,7 +13,7 @@ def train_stonks_transformer(
     train_loader: DataLoader,
     batch_processor: BatchProcessor,
     device: torch.device,
-    pbar # can't find type name for this
+    pbar = None # can't find type name for this
 ):
     losses = []
 
@@ -23,7 +23,7 @@ def train_stonks_transformer(
     plus_positional_encoding = Summer(PositionalEncoding1D(model.d_model))
     tgt_mask = get_tgt_mask(days_pred).to(device)
     for batch, lengths in train_loader:
-        pbar.update(1)
+        if pbar: pbar.update(1)
 
         batch, _ = standardize(batch, lengths)
         exp = batch_processor.get_exp(batch, lengths, days_pred).to(device)
@@ -34,7 +34,7 @@ def train_stonks_transformer(
 
         loss: torch.Tensor = loss_fn(out, exp)
         if not loss < float("inf"):
-            print("bad loss")
+            # print("bad loss")
             continue
         losses.append(loss.item())
         opt.zero_grad()
@@ -50,7 +50,7 @@ def test_stonks_transformer(
     test_loader: DataLoader,
     batch_processor: BatchProcessor,
     device: torch.device,
-    pbar
+    pbar = None
 ):
     model.eval()
     loss_fn = torch.nn.MSELoss()
@@ -60,7 +60,7 @@ def test_stonks_transformer(
     plus_positional_encoding = Summer(PositionalEncoding1D(model.d_model))
 
     for batch, lengths in test_loader:
-        pbar.update(1)
+        if pbar: pbar.update(1)
 
         batch, _ = standardize(batch, lengths)
         exp = batch_processor.get_exp(batch, lengths, days_pred).to(device)
@@ -87,21 +87,18 @@ def inference_stonks_transformer(
     plus_positional_encoding = Summer(PositionalEncoding1D(model.d_model))
     src = src.to(device)
     src_len = src.shape[1]
-    src, std_f = standardize(src, torch.Tensor([[src.shape[1]]]))
-    print("src:",src,"\n________________________")
-    for i in range(days_pred):
+    src, std_f = standardize(src, torch.Tensor([[src_len]]))
+    #print("src:",src,"\n________________________")
+    for _ in range(days_pred):
         src_p = plus_positional_encoding(src)
         tgt = src_p[:,-1:,:]
-        src_p = src_p[:,:src_len+i,:]
-
-        print("tgt:",tgt.shape, "\n", tgt[:,-1,:], "\n____________________________")
-        print("src:",src_p.shape, "\n", src_p[:,-1,:], "\n____________________________")
-
+        #print("tgt:",tgt.shape, "\n", tgt[:,-1,:], "\n____________________________")
+        print("src:",src_p.shape, "\n", src_p[:,-5:,:], "\n____________________________")
         out = model(src=src_p, tgt=tgt)
         print("out:", out.shape, "\n", out.clone().detach(), "\n____________________________")
         out = out[:,-1,:].unsqueeze(0)
         src = torch.cat((src, out), dim=1)
     res = src[:,-days_pred:, :5]
-    print(res)
+    #print(res)
     return unstandardize(res, *std_f).detach().to("cpu")
 

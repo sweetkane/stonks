@@ -1,5 +1,5 @@
 import h5py
-HDF5_FILENAME = "stonks.hdf5"
+HDF5_FILENAME = "data/stonks.hdf5"
 
 class H5PY_CONTROLLER:
     def __init__(self, filename=HDF5_FILENAME):

@@ -1,7 +1,28 @@
 from common.imports import *
 
+class DB:
+    def __init__(self) -> None:
+        self.engine = create_engine('sqlite:////home/kanesweet/kanesweet/stonks.0.2/data/stonks.db')
+        self.connection = self.engine.connect()
+        self.metadata = MetaData(bind=self.engine)
+        self.history_table = Table('history', self.metadata, autoload=True, autoload_with=self.engine)
+        self.attached = False
 
+def get_latest_date(db: DB, symbol) -> datetime.datetime:
+    """return latest date in history table for given symbol"""
+    if not sqlalchemy.inspect(db.engine).has_table("history"):
+        return None
 
+    result = db.engine.execute(
+        select([db.history_table.c.Date])
+        .where(db.history_table.c.Ticker == symbol)
+        .order_by(desc(db.history_table.c.Date)).limit(1)
+    )
+
+    if result:
+        return result.fetchone()[0]
+    else:
+        return None
 
 def get_grad_mean(model: torch.nn.Module, device):
     means = torch.empty((0,), dtype=float).to(device)

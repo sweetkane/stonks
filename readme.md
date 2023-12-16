@@ -21,7 +21,6 @@ I also learned a lot about transformers during the many hours spent trying to de
 - saw firsthand the importance of things like time encoding and normalization.
 
 
---
 ## My Notes
 
 ### pretty solid explainer on transformers

@@ -9,8 +9,8 @@ This is a quick/dirty pet project of mine, which I used to experiment with a ton
 - hdf5
 
 This project was an abject failure in terms of deliverable haha. 
-The goal was to create a stock price predictor that can predict n days in the future, and the result was a model that predicts the same price every day for n days.
-The price wasn't even close to the one before it! (see the bottom of [inference.ipynb](https://github.com/sweetkane/stonks.0.2/blob/main/inference.ipynb))
+The goal was to create a stock price predictor that can predict stock prices every day for the next n days, and the result was a model that predicts the same price every day for n days, and the price isn't even particularly close! 
+(see the bottom of [inference.ipynb](https://github.com/sweetkane/stonks.0.2/blob/main/inference.ipynb))
 
 But I learned a lot! 
 I spent a lot of time building custom dataloaders that would efficiently clean my fairly large (for a home PC) dataset. 

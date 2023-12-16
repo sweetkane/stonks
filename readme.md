@@ -1,7 +1,7 @@
 # STONKS.0.2
 
 This is a highly informal pet project of mine, which I used to experiment with a ton of concepts such as
-- transformer architecture and theory
+- transformers
 - pytorch
 - cuda
 - numpy

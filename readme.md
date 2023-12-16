@@ -10,7 +10,7 @@ This is a highly informal pet project of mine, which I used to experiment with a
 
 This project was an abject failure in terms of deliverable haha. 
 The goal was to create a stock price predictor that can predict n days in the future, and the result was a model that predicts the same price every day for n days.
-As far as I can tell it mostly just averaged the data and then spit out the average. 
+The price wasn't even close to the one before it! (see the bottom of [inference.ipynb](https://github.com/sweetkane/stonks.0.2/blob/main/inference.ipynb))
 
 But I learned a lot! 
 I spent a lot of time building custom dataloaders that would efficiently clean my fairly large (for a home PC) dataset. 

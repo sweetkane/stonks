@@ -1,6 +1,6 @@
 # 📉 STONKS.0.2 📈
 
-This is a quick/dirty pet project of mine, which I used to experiment with a ton of techs such as
+This is a quick/dirty pet project of mine, which I used to experiment with a ton of tech such as
 - transformers
 - pytorch
 - cuda

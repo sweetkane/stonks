@@ -15,7 +15,7 @@ The price wasn't even close to the one before it! (see the bottom of [inference.
 But I learned a lot! 
 I spent a lot of time building custom dataloaders that would efficiently clean my fairly large (for a home PC) dataset. 
 - This taught me a lot about the standard libraries for numpy, pandas, and pytorch. 
-- I learned about what form my data should be in for different tasks, and how to manipulate it into various forms.
+- I learned about what form my data should be in for different tasks, and how to [process](https://github.com/sweetkane/stonks.0.2/blob/main/model/batch_processor.py) it into various forms. 
   
 I also learned a lot about transformers during the many hours spent trying to decrease my loss.
 - saw firsthand the importance of things like time encoding and normalization.

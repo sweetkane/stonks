@@ -16,7 +16,9 @@ But I learned a lot!
 I spent a lot of time building custom dataloaders that would efficiently clean my fairly large (for a home PC) dataset. 
 - This taught me a lot about the standard libraries for numpy, pandas, and pytorch. 
 - I learned about what form my data should be in for different tasks, and how to manipulate it into various forms.
-I learned a lot about transformers, and saw firsthand the importance of things like time encoding and normalization.
+  
+I also learned a lot about transformers during the many hours spent trying to decrease my loss.
+- saw firsthand the importance of things like time encoding and normalization.
 
 
 --

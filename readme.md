@@ -6,7 +6,7 @@ This is a highly informal pet project of mine, which I used to experiment with a
 - cuda
 - numpy
 - pandas
-- h5py and hdf5 file format
+- hdf5
 
 This project was an abject failure in terms of deliverable haha. 
 The goal was to create a stock price predictor that can predict n days in the future, and the result was a model that predicts the same price every day for n days.

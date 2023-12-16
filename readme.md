@@ -1,5 +1,5 @@
 # STONKS.0.2
-## Description
+
 This is a highly informal pet project of mine, which I used to experiment with a ton of concepts such as
 - transformer architecture and theory
 - pytorch
@@ -21,7 +21,7 @@ I also learned a lot about transformers during the many hours spent trying to de
 - saw firsthand the importance of things like time encoding and normalization.
 
 
-## My Notes
+## My Scratchpad
 
 ### pretty solid explainer on transformers
 https://towardsdatascience.com/a-detailed-guide-to-pytorchs-nn-transformer-module-c80afbc9ffb1

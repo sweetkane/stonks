@@ -1,4 +1,4 @@
-# 📉 STONKS.0.2 📈
+# 📉 STONKS 📈
 
 This is a quick/dirty pet project of mine, which I used to experiment with a ton of technologies:
 - transformers

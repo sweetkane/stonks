@@ -1,27 +1,4 @@
-# 📉 STONKS 📈
-
-This is a quick/dirty pet project of mine, which I used to experiment with a ton of technologies:
-- transformers
-- pytorch
-- cuda
-- numpy
-- pandas
-- hdf5
-
-This project was... not a great success in terms of deliverable! 
-The goal was to create a stock price predictor that can predict stock prices every day for the next _n_ days, and the result was a model that predicts the same price every day for _n_ days, and that price isn't even particularly close! 
-(see the bottom of [inference.ipynb](https://github.com/sweetkane/stonks.0.2/blob/main/inference.ipynb))
-
-But I learned a lot! 
-I spent a lot of time building custom dataloaders that would efficiently clean my fairly large (for a home PC) dataset. 
-- This taught me a lot about the standard libraries for numpy, pandas, and pytorch. 
-- I learned about what form my data should be in for different tasks, and how to [process](https://github.com/sweetkane/stonks.0.2/blob/main/model/batch_processor.py) it into various forms. 
-  
-I also learned a lot about transformers during the many hours spent trying to decrease my loss.
-- saw firsthand the importance of things like time encoding and normalization.
-
----
-#### My Scratchpad
+#### Scratchpad
 
 ##### pretty solid explainer on transformers
 https://towardsdatascience.com/a-detailed-guide-to-pytorchs-nn-transformer-module-c80afbc9ffb1

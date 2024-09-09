@@ -8,7 +8,7 @@ https://towardsdatascience.com/how-to-run-inference-with-a-pytorch-time-series-t
 
 ##### potentially useful libs
 - datasource: https://github.com/quandl/quandl-python
-- lots of crap and good docs: https://quantlib-python-docs.readthedocs.io/en/latest/index.html
+- lots of info and good docs: https://quantlib-python-docs.readthedocs.io/en/latest/index.html
 - pytorch models for timeseries: https://github.com/cure-lab/LTSF-Linear/tree/main
 - time series transformer 1D: https://github.com/KasperGroesLudvigsen/influenza_transformer/blob/main/transformer_timeseries.py
 
